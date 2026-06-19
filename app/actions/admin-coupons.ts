@@ -74,9 +74,11 @@ export async function createCoupon(_prevState: { ok?: boolean; message?: string 
   return { ok: true, message: `Coupon ${code} created successfully.` };
 }
 
-export async function setCouponActive(couponId: string, isActive: boolean) {
+export async function setCouponActive(couponId: string, isActive: boolean, _formData: FormData): Promise<void> {
   const access = await requireAdmin();
-  if (!access.ok) return { ok: false, message: access.message };
+  if (!access.ok) {
+    throw new Error(access.message);
+  }
 
   const supabase = createAdminClient();
   const { error } = await supabase
@@ -84,8 +86,9 @@ export async function setCouponActive(couponId: string, isActive: boolean) {
     .update({ is_active: isActive })
     .eq('id', couponId);
 
-  if (error) return { ok: false, message: error.message };
+  if (error) {
+    throw new Error(error.message);
+  }
 
   revalidatePath('/admin/coupons');
-  return { ok: true, message: isActive ? 'Coupon activated.' : 'Coupon deactivated.' };
 }
