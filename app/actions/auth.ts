@@ -12,7 +12,9 @@ export async function signIn(_prevState: { message?: string }, formData: FormDat
   const { error } = await supabase.auth.signInWithPassword({ email, password });
   if (error) return { message: error.message };
   revalidatePath('/', 'layout');
-  redirect('/admin');
+  // Redirect to a safe customer page after login. Admin users can open /admin manually.
+  // This prevents a broken admin dashboard from blocking the login flow.
+  redirect('/shop');
 }
 
 export async function signUp(_prevState: { message?: string }, formData: FormData) {
