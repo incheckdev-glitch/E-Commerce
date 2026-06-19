@@ -39,7 +39,7 @@ export default async function AdminOrdersPage() {
           <section>
             <div className="section-title"><div><h1>Orders</h1><p>Customer orders, payment, delivery, and items.</p></div></div>
             <table className="table">
-              <thead><tr><th>Order</th><th>Customer</th><th>Address</th><th>Items</th><th>Total</th><th>Status</th></tr></thead>
+              <thead><tr><th>Order</th><th>Customer</th><th>Address</th><th>Items</th><th>Total</th><th>Coupon</th><th>Status</th></tr></thead>
               <tbody>
                 {(orders || []).map((order: any) => {
                   const customer = Array.isArray(order.customers) ? order.customers[0] : order.customers;
@@ -50,7 +50,8 @@ export default async function AdminOrdersPage() {
                       <td>{customer?.full_name || '-'}<div className="muted">{customer?.phone || '-'}<br />{customer?.email || '-'}</div></td>
                       <td>{address?.city || '-'}, {address?.area || '-'}<div className="muted">{address?.street || '-'}</div></td>
                       <td>{(order.order_items || []).map((item: any) => <div key={`${order.id}-${item.product_name}-${item.size_ml}`}>{item.brand_name} {item.product_name} {item.size_ml}ml × {item.quantity}</div>)}</td>
-                      <td>{formatMoney(order.total_amount)}</td>
+                      <td><strong>{formatMoney(order.total_amount)}</strong><div className="muted">Subtotal: {formatMoney(order.subtotal_amount || 0)}<br />Delivery: {formatMoney(order.delivery_fee || 0)}<br />Discount: -{formatMoney(order.discount_amount || 0)}</div></td>
+                      <td>{order.coupon_code ? <span className="status green">{order.coupon_code}</span> : <span className="muted">-</span>}</td>
                       <td><span className="status">{order.order_status}</span><br /><span className="status">{order.payment_status}</span></td>
                     </tr>
                   );

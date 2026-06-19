@@ -115,3 +115,9 @@ button, input, select, textarea { font: inherit; }
   .grid, .kpi-grid { grid-template-columns: 1fr; }
   .nav { gap: 10px; font-size: 13px; }
 }
+
+.inline-field { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; }
+.checkbox-line { display: inline-flex; gap: 8px; align-items: center; color: var(--ink) !important; }
+.success-text { color: var(--success); font-size: 13px; font-weight: 700; }
+.error-text { color: var(--danger); font-size: 13px; font-weight: 700; }
+@media (max-width: 560px) { .inline-field { grid-template-columns: 1fr; } }

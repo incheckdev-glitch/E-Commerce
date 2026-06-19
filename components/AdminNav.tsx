@@ -6,6 +6,7 @@ export function AdminNav() {
       <Link href="/admin">Dashboard</Link>
       <Link href="/admin/products">Products</Link>
       <Link href="/admin/orders">Orders</Link>
+      <Link href="/admin/coupons">Coupons</Link>
       <Link href="/shop">View Store</Link>
     </aside>
   );
