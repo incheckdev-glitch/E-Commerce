@@ -24,25 +24,27 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   const imageUrl = product.product_images?.find((image: any) => image.is_primary)?.image_url || product.product_images?.[0]?.image_url || '/placeholder.svg';
 
   return (
-    <main className="section">
-      <div className="container detail-grid">
-        <div className="panel">
+    <main className="section product-detail-section">
+      <div className="container detail-grid product-detail-grid">
+        <div className="panel product-gallery-panel">
+          <span className="product-ribbon">L&C Signature</span>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img className="product-img" src={imageUrl} alt={product.name} style={{ borderRadius: 18 }} />
+          <img className="product-img detail-image" src={imageUrl} alt={product.name} />
         </div>
-        <div>
-          <Link href="/shop" className="muted">← Back to shop</Link>
-          <h1 style={{ fontSize: 42, marginBottom: 8 }}>{product.name}</h1>
-          <p className="muted">{product.brands?.name || 'Maison'} · {product.gender} · {product.concentration}</p>
-          <p>{product.description}</p>
+        <div className="product-info-panel">
+          <Link href="/shop" className="muted back-link">← Back to shop</Link>
+          <span className="eyebrow">{product.brands?.name || 'L&C Perfume'}</span>
+          <h1>{product.name}</h1>
+          <p className="product-subtitle">{product.gender} · {product.concentration} · {product.scent_family}</p>
+          <p className="product-description">{product.description}</p>
 
           <AddToCart
-            product={{ slug: product.slug, name: product.name, brandName: product.brands?.name || 'Maison', imageUrl }}
+            product={{ slug: product.slug, name: product.name, brandName: product.brands?.name || 'L&C Perfume', imageUrl }}
             variants={product.product_variants || []}
           />
 
           <div className="section" style={{ paddingBottom: 0 }}>
-            <div className="panel">
+            <div className="panel notes-panel">
               <h2>Perfume Notes</h2>
               <table className="table">
                 <tbody>
