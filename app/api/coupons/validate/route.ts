@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 
-function deliveryFeeForMethod(method: string) {
+function defaultDeliveryFeeForMethod(method: string) {
   if (method === 'store_pickup') return 0;
   if (method === 'same_day_delivery') return 6;
   return 3;
@@ -26,7 +26,7 @@ export async function POST(request: Request) {
     const code = String(body?.code || '').trim().toUpperCase();
     const subtotal = Number(body?.subtotal || 0);
     const deliveryMethod = String(body?.deliveryMethod || 'standard_delivery');
-    const deliveryFee = deliveryFeeForMethod(deliveryMethod);
+    const deliveryFee = Number.isFinite(Number(body?.deliveryFee)) ? Number(body.deliveryFee) : defaultDeliveryFeeForMethod(deliveryMethod);
 
     if (!code) {
       return NextResponse.json({ ok: false, message: 'Enter a coupon code.' }, { status: 400 });
