@@ -27,17 +27,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <h3>Quick Links</h3>
               <a href="/">Home</a>
               <a href="/shop">Shop</a>
-              <a href="/shop?gender=women">Women</a>
-              <a href="/shop?gender=men">Men</a>
-              <a href="/shop?gender=unisex">Unisex</a>
+              <a href="/fragrance-finder">Fragrance Finder</a>
+              <a href="/wishlist">Wishlist</a>
+              <a href="/shop?scent=oud">Oud Collection</a>
             </div>
             <div>
               <h3>Customer Care</h3>
+              <a href="/track">Track Order</a>
               <a href="/cart">Cart</a>
               <a href="/checkout">Checkout</a>
               <a href="/login">My Account</a>
               <a href="/admin">Admin</a>
-              <a href="/shop">Track Order</a>
             </div>
             <div>
               <h3>Contact Us</h3>
