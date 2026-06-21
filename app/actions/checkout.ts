@@ -16,6 +16,7 @@ const checkoutSchema = z.object({
   floor: z.string().optional(),
   notes: z.string().optional(),
   deliveryMethod: z.string().default('standard_delivery'),
+  deliveryFee: z.coerce.number().min(0).optional(),
   paymentMethod: z.string().default('cash_on_delivery'),
   couponCode: z.string().optional(),
   giftWrap: z.string().optional(),
@@ -106,7 +107,8 @@ export async function createCheckoutOrder(_prevState: { ok?: boolean; message?: 
     p_gift: {
       gift_wrap: parsed.data.giftWrap === 'on',
       gift_message: parsed.data.giftMessage
-    }
+    },
+    p_delivery_fee: parsed.data.deliveryFee || null
   });
 
   if (error) return { ok: false, message: error.message };
