@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { ShoppingBag } from 'lucide-react';
 import { formatMoney } from '@/lib/currency';
+import { WishlistButton } from '@/components/WishlistButton';
 
 type ProductCardProps = {
   product: any;
@@ -13,6 +14,7 @@ export function ProductCard({ product }: ProductCardProps) {
   const compareAtValues = variants.map((variant: any) => Number(variant.compare_at_price || 0)).filter(Boolean);
   const compareAt = compareAtValues.length ? Math.min(...compareAtValues) : null;
   const totalStock = variants.reduce((sum: number, variant: any) => sum + Number(variant.stock_quantity || 0), 0);
+  const brandName = product.brands?.name || 'L&C Perfume';
 
   return (
     <article className="card product-card">
@@ -22,7 +24,7 @@ export function ProductCard({ product }: ProductCardProps) {
         <img className="product-img" src={primaryImage} alt={product.name} />
       </Link>
       <div className="card-body">
-        <div className="product-meta">{product.brands?.name || 'L&C Perfume'} · {product.gender}</div>
+        <div className="product-meta">{brandName} · {product.gender}</div>
         <Link href={`/product/${product.slug}`}>
           <h3 className="product-title">{product.name}</h3>
         </Link>
@@ -32,9 +34,12 @@ export function ProductCard({ product }: ProductCardProps) {
             <span className="price">{formatMoney(minPrice)}</span>
             {compareAt ? <span className="strike">{formatMoney(compareAt)}</span> : null}
           </p>
-          <Link href={`/product/${product.slug}`} className="bag-button" aria-label={`View ${product.name}`}>
-            <ShoppingBag size={17} />
-          </Link>
+          <div className="icon-row">
+            <WishlistButton compact product={{ slug: product.slug, name: product.name, brandName, imageUrl: primaryImage, price: minPrice }} />
+            <Link href={`/product/${product.slug}`} className="bag-button" aria-label={`View ${product.name}`}>
+              <ShoppingBag size={17} />
+            </Link>
+          </div>
         </div>
         <p className={totalStock > 0 ? 'status green' : 'status red'}>{totalStock > 0 ? `${totalStock} in stock` : 'Out of stock'}</p>
       </div>
