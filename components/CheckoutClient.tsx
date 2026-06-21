@@ -19,8 +19,9 @@ type AppliedCoupon = {
   total: number;
 };
 
-function deliveryFeeForMethod(method: string) {
+function defaultDeliveryFee(method: string, subtotal: number) {
   if (method === 'store_pickup') return 0;
+  if (subtotal >= 100) return 0;
   if (method === 'same_day_delivery') return 6;
   return 3;
 }
@@ -29,13 +30,17 @@ export function CheckoutClient() {
   const [items, setItems] = useState<CartItem[]>([]);
   const [state, formAction] = useActionState(createCheckoutOrder as any, initialState);
   const [deliveryMethod, setDeliveryMethod] = useState('standard_delivery');
+  const [country, setCountry] = useState('Lebanon');
+  const [city, setCity] = useState('');
+  const [area, setArea] = useState('');
+  const [deliveryFee, setDeliveryFee] = useState(3);
+  const [deliveryMessage, setDeliveryMessage] = useState('');
   const [couponCode, setCouponCode] = useState('');
   const [couponMessage, setCouponMessage] = useState('');
   const [appliedCoupon, setAppliedCoupon] = useState<AppliedCoupon | null>(null);
   const [applyingCoupon, setApplyingCoupon] = useState(false);
 
   const subtotal = useMemo(() => items.reduce((sum, item) => sum + item.price * item.quantity, 0), [items]);
-  const deliveryFee = deliveryFeeForMethod(deliveryMethod);
   const discountAmount = appliedCoupon?.discount_amount || 0;
   const total = Math.max(subtotal - discountAmount + deliveryFee, 0);
   const checkoutItems = items.map((item) => ({ variant_id: item.variantId, quantity: item.quantity }));
@@ -48,7 +53,35 @@ export function CheckoutClient() {
   useEffect(() => {
     setAppliedCoupon(null);
     setCouponMessage('');
-  }, [deliveryMethod, subtotal]);
+  }, [deliveryMethod, subtotal, deliveryFee]);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function quoteDelivery() {
+      const fallback = defaultDeliveryFee(deliveryMethod, subtotal);
+      setDeliveryFee(fallback);
+      if (!city.trim() && deliveryMethod !== 'store_pickup') {
+        setDeliveryMessage('Enter city to calculate exact delivery fee.');
+        return;
+      }
+      try {
+        const response = await fetch('/api/delivery/quote', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ country, city, area, deliveryMethod, subtotal })
+        });
+        const result = await response.json();
+        if (!cancelled && result.ok) {
+          setDeliveryFee(Number(result.delivery_fee || 0));
+          setDeliveryMessage(result.message || 'Delivery fee calculated.');
+        }
+      } catch {
+        if (!cancelled) setDeliveryMessage('Default delivery fee used.');
+      }
+    }
+    quoteDelivery();
+    return () => { cancelled = true; };
+  }, [country, city, area, deliveryMethod, subtotal]);
 
   async function applyCoupon() {
     const code = couponCode.trim();
@@ -65,7 +98,7 @@ export function CheckoutClient() {
       const response = await fetch('/api/coupons/validate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code, subtotal, deliveryMethod })
+        body: JSON.stringify({ code, subtotal, deliveryMethod, deliveryFee })
       });
       const result = await response.json();
       if (!response.ok || !result.ok) {
@@ -92,13 +125,14 @@ export function CheckoutClient() {
         <h1>Checkout</h1>
         {state?.message ? <p className="notice">{state.message}</p> : null}
         <input type="hidden" name="itemsJson" value={JSON.stringify(checkoutItems)} />
+        <input type="hidden" name="deliveryFee" value={deliveryFee} />
         <div className="form-grid">
           <div className="form-row"><label>Full name</label><input className="input" name="fullName" required /></div>
           <div className="form-row"><label>Email</label><input className="input" name="email" type="email" required /></div>
           <div className="form-row"><label>Phone</label><input className="input" name="phone" required /></div>
-          <div className="form-row"><label>Country</label><input className="input" name="country" defaultValue="Lebanon" required /></div>
-          <div className="form-row"><label>City</label><input className="input" name="city" required /></div>
-          <div className="form-row"><label>Area</label><input className="input" name="area" /></div>
+          <div className="form-row"><label>Country</label><input className="input" name="country" value={country} onChange={(event) => setCountry(event.target.value)} required /></div>
+          <div className="form-row"><label>City</label><input className="input" name="city" value={city} onChange={(event) => setCity(event.target.value)} required /></div>
+          <div className="form-row"><label>Area</label><input className="input" name="area" value={area} onChange={(event) => setArea(event.target.value)} /></div>
           <div className="form-row"><label>Street</label><input className="input" name="street" required /></div>
           <div className="form-row"><label>Building</label><input className="input" name="building" /></div>
           <div className="form-row"><label>Floor</label><input className="input" name="floor" /></div>
@@ -113,10 +147,11 @@ export function CheckoutClient() {
           <div className="form-row">
             <label>Delivery method</label>
             <select className="select" name="deliveryMethod" value={deliveryMethod} onChange={(event) => setDeliveryMethod(event.target.value)}>
-              <option value="standard_delivery">Standard delivery — {formatMoney(3)}</option>
-              <option value="same_day_delivery">Same-day delivery — {formatMoney(6)}</option>
+              <option value="standard_delivery">Standard delivery</option>
+              <option value="same_day_delivery">Same-day delivery</option>
               <option value="store_pickup">Store pickup — Free</option>
             </select>
+            {deliveryMessage ? <span className="success-text">{deliveryMessage}</span> : null}
           </div>
           <div className="form-row">
             <label>Payment method</label>
@@ -149,7 +184,7 @@ export function CheckoutClient() {
             <tr><th>Total</th><td><strong>{formatMoney(total)}</strong></td></tr>
           </tbody>
         </table>
-        <p className="muted" style={{ marginTop: 12 }}>Coupons are checked again when the order is submitted.</p>
+        <p className="muted" style={{ marginTop: 12 }}>Coupons and delivery fee are checked again when the order is submitted.</p>
       </aside>
     </form>
   );
